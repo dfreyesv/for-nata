@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nata, te tengo una pregunta 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #fdf6ee;
+    --blush: #e8b4b8;
+    --rose: #c97e86;
+    --deep: #7a3e48;
+    --warm: #f0d9cb;
+    --text: #3a2a2e;
+    --muted: #9a7a80;
+  }
+
+  html {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  body {
+    height: 100vh;
+    height: 100dvh;
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, #f9e8ef44 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #f5e0d344 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .petal {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0;
+    animation: fall linear infinite;
+    z-index: 0;
+    font-size: 1rem;
+  }
+
+  @keyframes fall {
+    0%   { transform: translateY(-20px) rotate(0deg);   opacity: 0.6; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0;   }
+  }
+
+  /* ---- SCREENS ---- */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    height: 100dvh;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.5s ease both;
+    padding: 1.2rem 0.8rem 1.5rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.8rem 1.3rem 1.4rem;
+    box-shadow: 0 8px 50px rgba(122,62,72,0.12);
+    width: 100%;
+    max-width: 460px;
+    text-align: center;
+    margin: auto 0;
+    /* allow card to shrink on very small screens */
+    min-height: 0;
+  }
+
+  .emoji-big {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.6rem;
+    animation: bob 3s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%,100% { transform: translateY(0);   }
+    50%      { transform: translateY(-7px); }
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    font-weight: 600;
+    color: var(--deep);
+    line-height: 1.25;
+    margin-bottom: 0.4rem;
+  }
+  h1 em { font-style: italic; color: var(--rose); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+  }
+
+  .divider { width: 36px; height: 2px; background: var(--warm); margin: 0.5rem auto 1rem; border-radius: 2px; }
+
+  /* ---- PRIMARY BUTTON ---- */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--rose), var(--deep));
+    color: white;
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(122,62,72,0.25);
+    transition: transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    width: 100%;
+    max-width: 260px;
+  }
+  .btn-primary:active { transform: scale(0.96); }
+  .btn-primary:disabled, .btn-primary[disabled] {
+    opacity: 0.38;
+    pointer-events: none;
+  }
+
+  /* ---- NO BUTTON ON MOBILE (inside card) ---- */
+  #btn-no-wrap {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #btn-no {
+    background: white;
+    color: var(--muted);
+    border: 1.5px solid #e0d0d3;
+    padding: 0.65rem 1.6rem;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    /* mobile: visible by default, hidden on desktop by JS */
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  #btn-no.shrinking {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---- SECTION LABEL ---- */
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+    margin-top: 0.8rem;
+    text-align: left;
+  }
+
+  /* ---- CALENDAR ---- */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .cal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--deep);
+  }
+  .cal-nav {
+    background: none; border: none;
+    cursor: pointer; color: var(--rose);
+    font-size: 1.3rem; padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cal-nav:active { background: var(--warm); }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 0.5rem;
+  }
+  .day-label {
+    font-size: 0.58rem; font-weight: 600;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.04em; text-align: center;
+    padding: 0.25rem 0;
+  }
+  .day-cell {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 0.82rem;
+    cursor: pointer; transition: background 0.12s;
+    color: var(--text);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-cell:active:not(.empty):not(.past) { background: var(--warm); }
+  .day-cell.today  { border: 1.5px solid var(--blush); }
+  .day-cell.past   { opacity: 0.28; cursor: default; }
+  .day-cell.empty  { cursor: default; }
+  .day-cell.selected {
+    background: linear-gradient(135deg, var(--rose), var(--deep));
+    color: white; font-weight: 600;
+    box-shadow: 0 3px 10px rgba(122,62,72,0.28);
+  }
+
+  /* ---- TIME ---- */
+  .time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px; margin-bottom: 0.5rem;
+  }
+  .time-chip {
+    padding: 0.55rem 0.2rem;
+    border-radius: 12px; border: 1.5px solid #e8d8db;
+    background: white; font-size: 0.8rem;
+    cursor: pointer; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s;
+  }
+  .time-chip:active { background: var(--warm); }
+  .time-chip.selected {
+    border-color: var(--rose);
+    background: linear-gradient(135deg, #f5e0e3, #f0d0d5);
+    color: var(--deep); font-weight: 600;
+  }
+
+  /* ---- FOOD ---- */
+  .food-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 9px; margin-bottom: 0.8rem;
+  }
+  .food-card {
+    width: calc(50% - 4.5px);
+    padding: 1rem 0.6rem; border-radius: 14px;
+    border: 1.5px solid #e8d8db; background: white;
+    cursor: pointer; text-align: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s;
+  }
+  .food-card:active { transform: scale(0.96); }
+  .food-card.selected {
+    border-color: var(--rose);
+    background: linear-gradient(160deg, #fdf0f2, #f9e8ea);
+    box-shadow: 0 4px 14px rgba(122,62,72,0.14);
+  }
+  .food-emoji { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
+  .food-name  { font-size: 0.85rem; font-weight: 500; color: var(--deep); }
+
+  /* ---- STEPS ---- */
+  .steps { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .step-dot { width: 6px; height: 6px; border-radius: 50%; background: #e0d0d3; transition: all 0.3s; }
+  .step-dot.active { background: var(--rose); width: 20px; border-radius: 3px; }
+  .step-dot.done   { background: var(--blush); }
+
+  /* ---- SUMMARY ---- */
+  .summary-box {
+    background: var(--warm); border-radius: 14px;
+    padding: 1rem 1.2rem; margin: 1rem 0 0.8rem;
+    text-align: left; line-height: 2.2;
+  }
+  .summary-row { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; }
+
+  /* ---- CONFETTI ---- */
+  .confetti-wrapper { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 999; }
+  .confetti-piece { position: absolute; top: -10px; opacity: 0; animation: cFall 3s ease-in forwards; }
+  @keyframes cFall {
+    0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ---- WHATSAPP ---- */
+  .btn-whatsapp {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: #25D366; color: white;
+    border: none; padding: 0.85rem 1.8rem; border-radius: 50px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; box-shadow: 0 4px 18px rgba(37,211,102,0.3);
+    text-decoration: none; margin-top: 0.8rem;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s;
+  }
+  .btn-whatsapp:active { transform: scale(0.96); }
+
+  .note-wa {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.6rem;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div id="petals"></div>
+
+
+<!-- ============ SCREEN 1 ============ -->
+<div class="screen active" id="screen-1">
+  <div class="card">
+    <span class="emoji-big">🌸</span>
+    <h1>Nata,<br>te tengo una <em>pregunta</em></h1>
+    <div class="divider"></div>
+    <p class="subtitle">Tómate tu tiempo para responder 🙂</p>
+    <p style="font-size:1.15rem;font-weight:500;color:var(--deep);margin-bottom:1.4rem;">
+      ¿Quieres salir <em style="font-family:'Playfair Display',serif;color:var(--rose);">conmigo</em>? 🥺
+    </p>
+    <button class="btn-primary" id="btn-yes" onclick="goToGag()">💖 ¡Sí, quiero!</button>
+
+    <!-- Mobile NO button (inside card, always visible on mobile) -->
+    <div id="btn-no-wrap">
+      <button id="btn-no" onclick="handleNo()">No...</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GAG SCREEN ============ -->
+<div class="screen" id="screen-gag">
+  <div class="card">
+    <span class="emoji-big">😅</span>
+    <h1>¡Uff!</h1>
+    <p class="subtitle">Por un segundo pensé que dirías que no... 😰</p>
+    <div class="divider"></div>
+    <button class="btn-primary" onclick="goToStep2()">Continuar ✨</button>
+  </div>
+</div>
+
+<!-- ============ SCREEN 2 ============ -->
+<div class="screen" id="screen-2">
+  <div class="card">
+    <div class="steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <span class="emoji-big" style="font-size:2.2rem;animation:none;">📅</span>
+    <h1>¿Cuándo <em>salimos</em>?</h1>
+    <p class="subtitle" style="margin-bottom:0.8rem;">Elige la fecha y hora que más te guste</p>
+
+    <p class="section-label">Fecha</p>
+    <div class="cal-header">
+      <button class="cal-nav" onclick="prevMonth()">‹</button>
+      <span class="cal-title" id="cal-title"></span>
+      <button class="cal-nav" onclick="nextMonth()">›</button>
+    </div>
+    <div class="calendar-grid" id="calendar"></div>
+
+    <p class="section-label">Hora</p>
+    <div class="time-grid" id="time-grid"></div>
+
+    <button class="btn-primary" id="btn-next-2" onclick="goToStep3()" disabled style="width:100%;margin-top:0.5rem;">
+      Siguiente →
+    </button>
+  </div>
+</div>
+
+<!-- ============ SCREEN 3 ============ -->
+<div class="screen" id="screen-3">
+  <div class="card">
+    <div class="steps">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <span class="emoji-big" style="font-size:2.2rem;animation:none;">🍽️</span>
+    <h1>¿Qué te <em>provoca</em>?</h1>
+    <p class="subtitle" style="margin-bottom:0.8rem;">Elige lo que quieras comer en nuestra cita</p>
+    <div class="food-grid" id="food-grid"></div>
+    <button class="btn-primary" id="btn-next-3" onclick="confirmCita()" disabled style="width:100%;">
+      ¡Confirmar cita! 🎉
+    </button>
+    <p id="submit-status" class="note-wa" style="display:none;"></p>
+  </div>
+</div>
+
+<!-- ============ SCREEN 4 ============ -->
+<div class="screen" id="screen-4">
+  <div id="confetti-wrapper" class="confetti-wrapper"></div>
+  <div class="card">
+    <span class="emoji-big" style="animation-duration:2s;">🎊</span>
+    <h1>¡Es una <em>cita</em>!</h1>
+    <p class="subtitle">¡No puedo esperar para verte, Natalia! 🥰</p>
+    <div class="summary-box" id="summary"></div>
+    <p id="pickup-note" class="note-wa">Pasaré por ti una hora antes de la hora seleccionada 🚗💨</p>
+  </div>
+</div>
+
+<script>
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAYS   = ['D','L','M','X','J','V','S'];
+
+  /* ---- DETECTAR MÓVIL (no depende de hover/pointer media queries) ---- */
+  const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
+
+  /* ---- PETALS ---- */
+  const petalEmojis = ['🌸','🌺','✨','🌷','💕'];
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.textContent = petalEmojis[i % petalEmojis.length];
+    p.style.left = (Math.random() * 100) + 'vw';
+    p.style.animationDuration  = (6 + Math.random() * 8) + 's';
+    p.style.animationDelay     = (Math.random() * 12) + 's';
+    p.style.fontSize = (0.8 + Math.random() * 0.7) + 'rem';
+    document.getElementById('petals').appendChild(p);
+  }
+
+  /* ---- NO BUTTON LOGIC ---- */
+  const btnNo = document.getElementById('btn-no');
+  const btnYes = document.getElementById('btn-yes');
+  let noTaps = 0;
+  const noMessages = ['No...','¡Espera! 🥺','¡Piénsalo! 😅','¡Último chance! 👀'];
+
+  function handleNo() {
+    noTaps++;
+
+    // Update No button text
+    btnNo.textContent = noMessages[noTaps - 1] || noMessages[noMessages.length - 1];
+
+    // Shrink No, Grow Yes
+    const noScale = Math.max(0, 1 - (noTaps * 0.2));
+    const yesScale = Math.min(2, 1 + (noTaps * 0.2));
+
+    btnNo.style.transform = `scale(${noScale})`;
+    btnYes.style.transform = `scale(${yesScale})`;
+
+    if (noTaps >= 5) {
+      btnNo.style.display = 'none';
+    }
+  }
+
+  // On desktop, make the button flee from the cursor continuously
+  if (!isMobile) {
+    let btnCx = 0, btnCy = 0;
+    let initialSet = false;
+
+    function setInitialPosition() {
+      const rect = btnNo.getBoundingClientRect();
+      btnCx = rect.left + rect.width / 2;
+      btnCy = rect.top + rect.height / 2;
+      btnNo.style.position = 'fixed';
+      btnNo.style.left = (btnCx - btnNo.offsetWidth / 2) + 'px';
+      btnNo.style.top = (btnCy - btnNo.offsetHeight / 2) + 'px';
+      btnNo.style.zIndex = '200';
+      initialSet = true;
+    }
+
+    // Capture initial position in the first frame (layout has settled)
+    requestAnimationFrame(setInitialPosition);
+
+    function fleeFromCursor() {
+      if (!initialSet) return;
+
+      const dx = btnCx - mouseX;
+      const dy = btnCy - mouseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Repulsion radius — button starts running when cursor gets within 150px
+      const repelRadius = 150;
+      if (dist < repelRadius) {
+        const force = (repelRadius - dist) / repelRadius;
+        const moveX = (dx / dist) * force * 12;
+        const moveY = (dy / dist) * force * 12;
+
+        // Recalculate center from current style position
+        btnCx = parseFloat(btnNo.style.left) + btnNo.offsetWidth / 2;
+        btnCy = parseFloat(btnNo.style.top) + btnNo.offsetHeight / 2;
+
+        let newX = parseFloat(btnNo.style.left) + moveX;
+        let newY = parseFloat(btnNo.style.top) + moveY;
+
+        // Keep button on screen
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const margin = 24;
+        const maxLeft = vw - btnNo.offsetWidth - margin;
+        const maxTop = vh - btnNo.offsetHeight - margin;
+        newX = Math.max(margin, Math.min(newX, maxLeft));
+        newY = Math.max(margin, Math.min(newY, maxTop));
+
+        btnNo.style.left = newX + 'px';
+        btnNo.style.top = newY + 'px';
+      }
+    }
+
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function animate() {
+      fleeFromCursor();
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  /* ---- SCREENS ---- */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+    el.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goToGag() {
+    btnNo.style.display = 'none';
+    showScreen('screen-gag');
+  }
+
+  function goToStep2() {
+    showScreen('screen-2');
+    renderCalendar(); renderTimes();
+  }
+  function goToStep3() { showScreen('screen-3'); renderFoods(); }
+  function goToSuccess() { showScreen('screen-4'); renderSummary(); launchConfetti(); }
+
+  /* ---- FORMSPREE ---- */
+  // Replace with your Formspree endpoint: https://formspree.io/f/yourFormId
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xredogqq';
+
+  function confirmCita() {
+    const btn = document.getElementById('btn-next-3');
+    const status = document.getElementById('submit-status');
+    btn.disabled = true;
+    btn.textContent = 'Confirmando... ⏳';
+    status.style.display = 'block';
+    status.textContent = 'Enviando...';
+
+    const dateStr = `${selectedDay.d} de ${MONTHS[selectedDay.m]} de ${selectedDay.y}`;
+    const data = {
+      'Fecha': dateStr,
+      'Hora': selectedTime,
+      'Comida': `${selectedFood.name} (${selectedFood.sub})`,
+      'Mensaje': '¡Natalia confirmó la cita!'
+    };
+
+    fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(r => {
+      if (r.ok) {
+        showScreen('screen-4');
+        renderSummary();
+        launchConfetti();
+      } else {
+        status.textContent = 'Error, intenta de nuevo.';
+        btn.disabled = false;
+        btn.textContent = '¡Confirmar cita! 🎉';
+      }
+    }).catch(() => {
+      status.textContent = 'Error, intenta de nuevo.';
+      btn.disabled = false;
+      btn.textContent = '¡Confirmar cita! 🎉';
+    });
+  }
+
+  /* ---- CALENDAR ---- */
+  const now = new Date();
+  let viewYear = now.getFullYear(), viewMonth = now.getMonth();
+  let selectedDay = null;
+
+  function renderCalendar() {
+    document.getElementById('cal-title').textContent = MONTHS[viewMonth] + ' ' + viewYear;
+    const grid = document.getElementById('calendar');
+    grid.innerHTML = '';
+    DAYS.forEach(d => {
+      const lbl = document.createElement('div');
+      lbl.className = 'day-label'; lbl.textContent = d;
+      grid.appendChild(lbl);
+    });
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const todayTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    for (let i = 0; i < firstDay; i++) {
+      const e = document.createElement('div'); e.className = 'day-cell empty'; grid.appendChild(e);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell'; cell.textContent = d;
+      const ts = new Date(viewYear, viewMonth, d).getTime();
+      if (ts < todayTs) {
+        cell.classList.add('past');
+      } else {
+        if (ts === todayTs) cell.classList.add('today');
+        if (selectedDay && selectedDay.d === d && selectedDay.m === viewMonth && selectedDay.y === viewYear)
+          cell.classList.add('selected');
+        const pick = () => {
+          selectedDay = { d, m: viewMonth, y: viewYear };
+          document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+          cell.classList.add('selected');
+          checkStep2();
+        };
+        cell.addEventListener('click', pick);
+        cell.addEventListener('touchend', e => { e.preventDefault(); pick(); }, { passive: false });
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  function prevMonth() { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderCalendar(); }
+  function nextMonth() { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderCalendar(); }
+
+  /* ---- TIMES ---- */
+  const TIMES = ['12:00 pm','1:00 pm','2:00 pm','6:00 pm','7:00 pm','8:00 pm'];
+  let selectedTime = null;
+
+  function renderTimes() {
+    const grid = document.getElementById('time-grid'); grid.innerHTML = '';
+    TIMES.forEach(t => {
+      const chip = document.createElement('button');
+      chip.className = 'time-chip'; chip.textContent = t;
+      const pick = () => {
+        selectedTime = t;
+        document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        checkStep2();
+      };
+      chip.addEventListener('click', pick);
+      chip.addEventListener('touchend', e => { e.preventDefault(); pick(); }, { passive: false });
+      grid.appendChild(chip);
+    });
+  }
+
+  function checkStep2() {
+    const btn = document.getElementById('btn-next-2');
+    if (selectedDay && selectedTime) btn.disabled = false;
+  }
+
+  /* ---- FOODS ---- */
+  const FOODS = [
+    { emoji:'🍣', name:'Sushi',  sub:'Japonés & rolls'    },
+    { emoji:'🍕', name:'Pizza',  sub:'Italiana clásica'   },
+    { emoji:'🥩', name:'Carnes', sub:'Asados & parrilla'  },
+    { emoji:'🌮', name:'Tacos',  sub:'Mexicano & picante' },
+    { emoji:'🍔', name:'Burger', sub:'Smash & artesanal'  },
+    { emoji:'🍝', name:'Pasta',  sub:'Carbonara, vodka…'  },
+    { emoji:'🍜', name:'Ramen',  sub:'Sopa japonesa'  },
+  ];
+  let selectedFood = null;
+
+  function renderFoods() {
+    const grid = document.getElementById('food-grid'); grid.innerHTML = '';
+    FOODS.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      card.innerHTML = `<span class="food-emoji">${f.emoji}</span><div class="food-name">${f.name}</div>`;
+      const pick = () => {
+        selectedFood = f;
+        document.querySelectorAll('.food-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('btn-next-3').disabled = false;
+      };
+      card.addEventListener('click', pick);
+      card.addEventListener('touchend', e => { e.preventDefault(); pick(); }, { passive: false });
+      grid.appendChild(card);
+    });
+  }
+
+  /* ---- SUMMARY + WA ---- */
+  function renderSummary() {
+    const dateStr = `${selectedDay.d} de ${MONTHS[selectedDay.m]} de ${selectedDay.y}`;
+    document.getElementById('summary').innerHTML = `
+      <div class="summary-row"><span>📅</span><span>${dateStr}</span></div>
+      <div class="summary-row"><span>🕐</span><span>${selectedTime}</span></div>
+      <div class="summary-row"><span>${selectedFood.emoji}</span><span>${selectedFood.name}</span></div>
+    `;
+
+    const pickupMap = {
+      '12:00 pm': '11:00 am',
+      '1:00 pm': '12:00 pm',
+      '2:00 pm': '1:00 pm',
+      '6:00 pm': '5:00 pm',
+      '7:00 pm': '6:00 pm',
+      '8:00 pm': '7:00 pm'
+    };
+    const pickupTime = pickupMap[selectedTime] || 'un ratito antes';
+    document.getElementById('pickup-note').textContent = `Pasaré por ti a las ${pickupTime} 🚗💨`;
+  }
+
+  /* ---- CONFETTI ---- */
+  function launchConfetti() {
+    const wrapper = document.getElementById('confetti-wrapper');
+    const colors = ['#e8b4b8','#c97e86','#f0d9cb','#7a3e48','#f9cdd3'];
+    const shapes = ['🌸','💕','✨','🎊','💖'];
+    for (let i = 0; i < 50; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random() * 100) + 'vw';
+      el.style.animationDelay    = (Math.random() * 1.5) + 's';
+      el.style.animationDuration = (2 + Math.random() * 2) + 's';
+      if (Math.random() > 0.45) {
+        el.style.background    = colors[Math.floor(Math.random() * colors.length)];
+        el.style.borderRadius  = Math.random() > 0.5 ? '50%' : '2px';
+        const sz = (5 + Math.random() * 7) + 'px';
+        el.style.width = sz; el.style.height = sz;
+      } else {
+        el.style.fontSize = '1rem';
+        el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+      }
+      wrapper.appendChild(el);
+    }
+  }
+</script>
+</body>
+</html>
