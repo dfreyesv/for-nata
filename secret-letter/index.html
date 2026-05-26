@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Un secreto para ti 🌸</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    :root {
+      --deep-crimson: #7a3e48;
+      --blush-pink: #e8b4b8;
+      --soft-cream: #fdf6ee;
+      --parchment-base: #fcf5e5;
+      --text-color: #3a2a2e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      height: 100vh;
+      height: 100dvh;
+      background: var(--soft-cream);
+      font-family: 'Montserrat', sans-serif;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Background heart particles */
+    .heart {
+      position: absolute;
+      color: var(--blush-pink);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(110vh) scale(0); opacity: 0; }
+      20% { opacity: 0.3; }
+      100% { transform: translateY(-20vh) scale(1.5); opacity: 0; }
+    }
+
+    /* Screen Management */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-20px) scale(0.95);
+    }
+
+    /* Lock Screen Styling */
+    #lock-screen {
+      background: radial-gradient(circle at center, #fff 0%, var(--soft-cream) 100%);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 2.5rem;
+      border-radius: 30px;
+      box-shadow: 0 20px 50px rgba(122, 62, 72, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.2rem;
+      color: var(--deep-crimson);
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem 1.2rem;
+      border-radius: 25px;
+      border: 2px solid var(--blush-pink);
+      background: white;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--deep-crimson);
+    }
+
+    .btn-unlock {
+      background: linear-gradient(135deg, var(--blush-pink), var(--deep-crimson));
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(122, 62, 72, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .btn-unlock:active { transform: scale(0.95); }
+
+    #error-msg {
+      color: var(--deep-crimson);
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    /* Shake Animation */
+    .shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    /* Letter Screen Styling */
+    #letter-screen {
+      background: var(--soft-cream);
+    }
+
+    .parchment {
+      background: var(--parchment-base);
+      width: 100%;
+      max-width: 600px;
+      min-height: 80vh;
+      padding: 3rem;
+      position: relative;
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.1),
+        inset 0 0 50px rgba(210, 180, 140, 0.3);
+      border-radius: 2px;
+      transform: rotate(-1deg);
+      transition: transform 1s ease-out;
+      overflow-y: auto;
+    }
+
+    .parchment::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 1px solid rgba(0,0,0,0.05);
+      pointer-events: none;
+    }
+
+    .letter-content {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.5rem;
+      line-height: 1.6;
+      color: #2c1e1f;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    .letter-header {
+      text-align: right;
+      margin-bottom: 2rem;
+      font-style: italic;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="heart-container"></div>
+
+  <!-- LOCK SCREEN -->
+  <section id="lock-screen" class="screen">
+    <div class="glass-card" id="lock-card">
+      <h1>Un secreto para ti 🌸</h1>
+      <div class="input-group">
+        <input type="password" id="password-input" placeholder="Introduce la clave..." autocomplete="off">
+      </div>
+      <button class="btn-unlock" onclick="attemptUnlock()">Abrir Corazón ✨</button>
+      <p id="error-msg">La llave no es la correcta... 🥺</p>
+    </div>
+  </section>
+
+  <!-- LETTER SCREEN -->
+  <section id="letter-screen" class="screen hidden">
+    <div class="parchment" id="parchment">
+      <div class="letter-content" id="letter-body">
+        <!-- Decrypted content will appear here -->
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ========================================================================
+    // CONFIGURATION
+    // ========================================================================
+    // Paste your encrypted ciphertext here:
+    const SECRET_CIPHERTEXT = "U2FsdGVkX1/fARm7NdhSbvMj3n8Bb1KQ6AAjKtQD8hw=";
+
+    // ========================================================================
+    // CORE LOGIC
+    // ========================================================================
+
+    function createHearts() {
+      const container = document.getElementById('heart-container');
+      const heartEmojis = ['🌸', '💖', '✨', '🌷', '💕'];
+
+      setInterval(() => {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.fontSize = (0.5 + Math.random() * 1) + 'rem';
+        heart.style.animationDuration = (5 + Math.random() * 7) + 's';
+        container.appendChild(heart);
+
+        setTimeout(() => heart.remove(), 12000);
+      }, 500);
+    }
+
+    function attemptUnlock() {
+      const input = document.getElementById('password-input');
+      const pass = input.value.trim();
+      const card = document.getElementById('lock-card');
+      const error = document.getElementById('error-msg');
+
+      if (!pass) return;
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(SECRET_CIPHERTEXT, pass);
+        const originalText = bytes.toString(CryptoJS.enc.Utf8);
+
+        if (originalText && originalText.length > 0) {
+          // Success!
+          unlockLetter(originalText);
+        } else {
+          throw new Error("Invalid password");
+        }
+      } catch (e) {
+        // Failure
+        card.classList.add('shake');
+        error.style.opacity = '1';
+        input.value = '';
+
+        setTimeout(() => {
+          card.classList.remove('shake');
+        }, 400);
+      }
+    }
+
+    function unlockLetter(text) {
+      document.getElementById('letter-body').textContent = text;
+
+      document.getElementById('lock-screen').classList.add('hidden');
+      const letterScreen = document.getElementById('letter-screen');
+      letterScreen.classList.remove('hidden');
+
+      // Soften the parchment rotation when appearing
+      document.getElementById('parchment').style.transform = 'rotate(0deg)';
+    }
+
+    // Initialize hearts on load
+    window.onload = createHearts;
+
+    // Allow Enter key to trigger unlock
+    document.getElementById('password-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') attemptUnlock();
+    });
+  </script>
+</body>
+</html>
