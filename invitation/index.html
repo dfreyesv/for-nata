@@ -563,46 +563,48 @@
   function goToStep3() { showScreen('screen-3'); renderFoods(); }
   function goToSuccess() { showScreen('screen-4'); renderSummary(); launchConfetti(); }
 
-  /* ---- FORMSPREE ---- */
-  // Replace with your Formspree endpoint: https://formspree.io/f/yourFormId
-  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xredogqq';
+  /* ---- WEB3FORMS ---- */
+const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
+const WEB3FORMS_ACCESS_KEY = 'afd72e17-4156-4a2e-9be5-4fa7c0be306d'; // <-- paste your key from web3forms.com
 
-  function confirmCita() {
-    const btn = document.getElementById('btn-next-3');
-    const status = document.getElementById('submit-status');
-    btn.disabled = true;
-    btn.textContent = 'Confirmando... ⏳';
-    status.style.display = 'block';
-    status.textContent = 'Enviando...';
+function confirmCita() {
+  const btn = document.getElementById('btn-next-3');
+  const status = document.getElementById('submit-status');
+  btn.disabled = true;
+  btn.textContent = 'Confirmando... ⏳';
+  status.style.display = 'block';
+  status.textContent = 'Enviando...';
 
-    const dateStr = `${selectedDay.d} de ${MONTHS[selectedDay.m]} de ${selectedDay.y}`;
-    const data = {
-      'Fecha': dateStr,
-      'Hora': selectedTime,
-      'Comida': `${selectedFood.name} (${selectedFood.sub})`,
-      'Mensaje': '¡Lau confirmó la cita!'
-    };
+  const dateStr = `${selectedDay.d} de ${MONTHS[selectedDay.m]} de ${selectedDay.y}`;
+  const data = {
+    access_key: WEB3FORMS_ACCESS_KEY,
+    subject: '¡Lau confirmó la cita! 🎉',
+    'Fecha': dateStr,
+    'Hora': selectedTime,
+    'Comida': `${selectedFood.name} (${selectedFood.sub})`,
+    'Mensaje': '¡Lau confirmó la cita!'
+  };
 
-    fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(r => {
-      if (r.ok) {
-        showScreen('screen-4');
-        renderSummary();
-        launchConfetti();
-      } else {
-        status.textContent = 'Error, intenta de nuevo.';
-        btn.disabled = false;
-        btn.textContent = '¡Confirmar cita! 🎉';
-      }
-    }).catch(() => {
+  fetch(WEB3FORMS_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(result => {
+    if (result.success) {
+      showScreen('screen-4');
+      renderSummary();
+      launchConfetti();
+    } else {
       status.textContent = 'Error, intenta de nuevo.';
       btn.disabled = false;
       btn.textContent = '¡Confirmar cita! 🎉';
-    });
-  }
+    }
+  }).catch(() => {
+    status.textContent = 'Error, intenta de nuevo.';
+    btn.disabled = false;
+    btn.textContent = '¡Confirmar cita! 🎉';
+  });
+}
 
   /* ---- CALENDAR ---- */
   const now = new Date();
